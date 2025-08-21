@@ -18,6 +18,7 @@ Frederick Fung 2022
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <time.h>
 #include <math.h>
 
@@ -49,8 +50,8 @@ int main(void) {
         uint64_t hits = calc_pi(samples);
         double pi_est = 4.0 * (double)hits / (double)samples;
 
-        printf("Sampling points %" MATH_PI "; Hit numbers %" PRIu64 "; Approx Pi %.9f\n",
-               samples, hits, pi_est);
+        printf("Sampling points %ld; Hit numbers %ld; Approx Pi %f\n", samples, hits, pi_est);  
+
     }
     return 0;
 }

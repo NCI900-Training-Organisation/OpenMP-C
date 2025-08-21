@@ -66,7 +66,7 @@ int main(void) {
         double pi_est = 4.0 * (double)hits / (double)samples;
         double err = fabs(pi_est - MATH_PI);
 
-        printf("Sampling points %d; Hit numbers %d; Approx Pi %f\n", samples, hit, pi_est);  
+        printf("Sampling points %ld; Hit numbers %ld; Approx Pi %f\n", samples, hits, pi_est);  
 
     }
     return 0;
