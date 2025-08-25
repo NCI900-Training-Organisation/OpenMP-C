@@ -47,6 +47,7 @@ static double l2_residual(int n, double h,
 {
     double sum = 0.0;
     const double invh2 = 1.0 / (h * h);
+    #pragma omp parallel for collapse(2) reduction(+:sum) schedule(static) default(none) shared(u,f) firstprivate(n,invh2)
     for (int i = 1; i < n - 1; ++i) {
         for (int j = 1; j < n - 1; ++j) {
             const double Au =
@@ -77,6 +78,8 @@ static int Jacobi(double tol, int max_iter, int n,
 
     while (res > tol && iter < max_iter) {
         ++iter;
+
+        #pragma omp parallel for collapse(2) schedule(static) default(none) shared(next,grid,rhs) firstprivate(n,h2_4)
         for (int i = 1; i < n - 1; ++i) {
             for (int j = 1; j < n - 1; ++j) {
                 next[i][j] = h2_4 * rhs[i][j]
@@ -109,14 +112,25 @@ static int GaussSeidel(double tol, int max_iter, int n,
 
     while (res > tol && iter < max_iter) {
         ++iter;
-        for (int i = 1; i < n - 1; ++i) {
-            for (int j = 1; j < n - 1; ++j) {
+    /* Red sweep: (i+j) % 2 == 0 */
+    #pragma omp parallel for collapse(2) schedule(static) default(none) shared(grid,rhs) firstprivate(n,h2_4)
+    for (int i = 1; i < n - 1; ++i){
+        for (int j = 1; j < n - 1; ++j)
+            if (((i + j) & 1) == 0)
                 grid[i][j] = h2_4 * rhs[i][j]
-                           + 0.25 * (grid[i-1][j] + grid[i+1][j] + grid[i][j-1] + grid[i][j+1]);
-            }
-        }
-        if (iter % 1000 == 0){
-            res = l2_residual(n, h, grid, rhs, 0);
+                        + 0.25 * (grid[i-1][j] + grid[i+1][j] + grid[i][j-1] + grid[i][j+1]);
+    }
+    /* Black sweep: (i+j) % 2 == 1 */
+    #pragma omp parallel for collapse(2) schedule(static) default(none) shared(grid,rhs) firstprivate(n,h2_4)
+    for (int i = 1; i < n - 1; ++i){
+        for (int j = 1; j < n - 1; ++j)
+            if (((i + j) & 1) == 1)
+                grid[i][j] = h2_4 * rhs[i][j]
+                            + 0.25 * (grid[i-1][j] + grid[i+1][j] + grid[i][j-1] + grid[i][j+1]);
+    }
+
+    if (iter % 1000 == 0){
+        res = l2_residual(n, h, grid, rhs, 0);
             printf("Residual after %d iteration: %.10f\n", iter, res);
         }
     }
