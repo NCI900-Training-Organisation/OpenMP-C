@@ -77,18 +77,18 @@ static int cg_solve(const double *A,
     double *r  = (double*)malloc((size_t)n * sizeof *r);
     double *p  = (double*)malloc((size_t)n * sizeof *p);
     double *Ap = (double*)malloc((size_t)n * sizeof *Ap);
-    if (!r || !p || !Ap) { free(r); free(p); free(Ap); return -1; }
+    if (!r || !p || !Ap) { free(r); free(p); free(Ap); return 1; }
 
     /* r = b - A x; p = r */
     if (x) {
         matvec(Ap, A, x, n);
         vec_sub(r, b, Ap, n);
     } else {
-        /* If caller passes NULL x, treat as zero initial guess */
+        /* If passes NULL x, treat as zero initial guess */
         memset(r, 0, (size_t)n * sizeof *r);
         copy(r, b, n);
         x = (double*)calloc((size_t)n, sizeof *x);
-        if (!x) { free(r); free(p); free(Ap); return -1; }
+        if (!x) { free(r); free(p); free(Ap); return 1; }
     }
     copy(p, r, n);
 
