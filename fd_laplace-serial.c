@@ -25,7 +25,7 @@ Frederick Fung 2022, 2025
 #include <math.h>
 
 #ifndef M_PI
-#define M_PI 3.14159265358979323846
+#define M_PI acos(-1.0)
 #endif
 
 static inline double bnd_fc(int i, int j, double h) {
