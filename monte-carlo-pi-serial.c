@@ -26,6 +26,7 @@ Frederick Fung 2022, 2025
 
 uint64_t calc_pi(uint64_t samples) {
     double x, y;
+    /* Do you know the reason for the number 2654435761?*/
     unsigned int seed = (unsigned)time(NULL) ^ (unsigned)(samples * 2654435761u);
     uint64_t count = 0;
 
