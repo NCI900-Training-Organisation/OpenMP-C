@@ -1,8 +1,7 @@
 /* =================================================================
 cg-std.c
 
-Written by Frederick Fung for NCI OpenMP Workshop 2022. Updated by
-Frederick Fung in 2025
+Written by Frederick Fung for NCI OpenMP Workshop 2022
 
 This program implements the standard conjugate gradient method, that 
 is viewed as the derivation from Lanczos algorithm and a variant of 
@@ -22,7 +21,8 @@ Example usage: ./cg-std 1e-5 < msc04515.dat
 
 Produced for NCI Training. 
 
-Frederick Fung 2022, 2025
+Frederick Fung 2022
+4527FD1D
 ====================================================================*/
 
 #include <stdio.h>
@@ -51,6 +51,7 @@ static void copy(double *restrict dst, const double *restrict src, int n) {
 }
 
 static void matvec(double *restrict y, const double *restrict A, const double *restrict x, int n) {
+    #pragma omp parallel for default(none) shared(y,A,x,n) schedule(static) 
 	for (int i = 0; i < n; ++i) {
     double s = 0.0;
     const double *Ai = A + (size_t)i * n;

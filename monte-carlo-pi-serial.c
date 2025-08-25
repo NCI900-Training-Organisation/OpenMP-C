@@ -13,7 +13,7 @@ Usage: ./monte-carlo-pi-serial
 .....................................................................
 Produced for NCI Training. 
 
-Frederick Fung 2022
+Frederick Fung 2022, 2025
 ====================================================================*/
 
 #include <stdio.h>

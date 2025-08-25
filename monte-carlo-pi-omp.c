@@ -33,11 +33,8 @@ uint64_t calc_pi(uint64_t samples) {
 
     #pragma omp parallel
     {
-        // Per-thread seed: time ^ thread_id ^ samples, lightly mixed
-        unsigned int seed =
-            (unsigned)time(NULL)
-            ^ (2654435761u * (unsigned)(omp_get_thread_num() + 1))
-            ^ (unsigned)samples;
+        // Per-thread seed: time ^ thread_id ^ samples
+        unsigned int seed = (unsigned)time(NULL) ^ (2654435761u * (unsigned)(omp_get_thread_num() + 1)) ^ (unsigned)samples;
 
         // Use reduction instead of atomic to avoid contention
         #pragma omp for 

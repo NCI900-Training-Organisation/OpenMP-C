@@ -100,7 +100,7 @@ static int Jacobi(double tol, int max_iter, int n,
     return iter;
 }
 
-/* Gauss–Seidel (in-place) */
+/* Gauss–Seidel (red-black ordering) */
 static int GaussSeidel(double tol, int max_iter, int n,
                        double (*restrict grid)[n],
                        const double (*restrict rhs)[n],

@@ -1,7 +1,8 @@
 /* =================================================================
 mandelbrot-omp.c
 
-Written by Frederick Fung for NCI OpenMP Workshop March 2022
+Written by Frederick Fung for NCI OpenMP Workshop March 2022, updated
+by Frederick Fung in 2025
 
 This program computes Mandelbrot set within a pre-defined region. 
 For plotting, the output is filled as the iteration goes.
@@ -18,8 +19,7 @@ Usage: ./mandelbrot-omp
 
 Produced for NCI Training. 
 
-Frederick Fung 2022
-4527FD1D
+Frederick Fung 2022, 2025
 ====================================================================*/
 
 
