@@ -17,15 +17,13 @@ Usage:  ./fdd_laplace-omp size tolerance method
 
 Produced for NCI Training. 
 
-Frederick Fung 2022
-4527FD1D
+Frederick Fung 2022, 2025
 ====================================================================*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-/* Some libcs don't define M_PI under -std=c11 unless extensions are enabled */
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -39,7 +37,7 @@ static inline double rhs_fc(int i, int j, double h) {
     return (2.0 * M_PI * M_PI) * sin(M_PI * x) * sin(M_PI * y);
 }
 
-/* L2 norm of residual r = A u - f on interior (optionally normalized) */
+/* L2 norm of residual r = A u - f on interior  */
 static double l2_residual(int n, double h,
                           double (*restrict u)[n],
                           const double (*restrict f)[n],
@@ -60,7 +58,7 @@ static double l2_residual(int n, double h,
     return res;
 }
 
-/* Jacobi: updates grid in-place (copies back if final buffer is the temp) */
+/* Jacobi: updates grid in-place  */
 static int Jacobi(double tol, int max_iter, int n,
                   double (*restrict grid)[n],
                   const double (*restrict rhs)[n],
@@ -91,7 +89,6 @@ static int Jacobi(double tol, int max_iter, int n,
         }
 
     }
-    /* Always copy back to the caller's original buffer (pointed to by 'next' now if odd swaps) */
     memcpy(next, grid, (size_t)n * (size_t)n * sizeof **grid);
     free(next);
     return iter;
@@ -144,7 +141,7 @@ int main(int argc, char *argv[]){
         } else if (strcmp(method, "Jacobi") == 0){
             printf("%s METHOD IS IN USE\n", method);
         } else {
-            printf("Not a valid method\n");
+            printf("Not a supported method\n");
             return 1;
         }
 
@@ -157,6 +154,7 @@ int main(int argc, char *argv[]){
         double (*rhs )[size] = malloc(sizeof *rhs  * size);
         if (!grid || !rhs) { perror("malloc"); free(grid); free(rhs); fclose(fp); return 1; }
 
+        /* set up the boundary condition and rhs*/
         for (int i = 0; i < size; i++){
             for (int j = 0; j < size; j++){
                 if (i == 0 || j == 0 || i == size-1 || j == size-1){

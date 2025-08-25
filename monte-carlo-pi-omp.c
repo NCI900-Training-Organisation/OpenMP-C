@@ -16,7 +16,7 @@ Usage: ./monte-carlo-pi-openmp
 
 Produced for NCI Training. 
 
-Frederick Fung 2022
+Frederick Fung 2022, 2025
 ====================================================================*/
 
 #include <stdio.h>
@@ -31,18 +31,18 @@ Frederick Fung 2022
 uint64_t calc_pi(uint64_t samples) {
     uint64_t count = 0;
 
-    #pragma omp parallel
+    #pragma omp FIXME
     {
         // Per-thread seed: time ^ thread_id ^ samples
         unsigned int seed = (unsigned)time(NULL) ^ (2654435761u * (unsigned)(omp_get_thread_num() + 1)) ^ (unsigned)samples;
 
         // Use reduction instead of atomic to avoid contention
-        #pragma omp for 
+        #pragma omp FIXME 
         for (long long i = 0; i < (long long)samples; ++i) {
             double x = rand_r(&seed) / (double)RAND_MAX;
             double y = rand_r(&seed) / (double)RAND_MAX;
             if (x * x + y * y <= 1.0) {
-                # pragma omp atomic
+                # pragma omp FIXME
                 ++count;
             }
         }

@@ -31,11 +31,8 @@ Frederick Fung 2022, 2025
 #define MAXITER 100
 //#define OPENMP_TIMER
 
-
-
 static const double XMIN = -2.0, XMAX = 0.47;
 static const double YMIN = -1.12, YMAX = 1.12;
-
 
 typedef struct { double re, im; } Complex;
 
@@ -77,8 +74,6 @@ static void gen_mandelbrot(int points){
   const double stepx = (points > 1) ? (XMAX - XMIN) / (points - 1) : 0.0;
   const double stepy = (points > 1) ? (YMAX - YMIN) / (points - 1) : 0.0;
 
-   
-
     
     int i, j;
     #ifdef OPENMP_TIMER
@@ -86,10 +81,10 @@ static void gen_mandelbrot(int points){
     #endif
 
     /* parallel constrcut */
-    #pragma omp parallel default(none) firstprivate(stepx, stepy) private(i,j) shared(points,fp)
+    #pragma omp FIXME
     { 
        // worksharing loop
-       #pragma omp for schedule(dynamic) ordered
+       #pragma omp FIXME
         for (i = 0; i< points; i++){
            for (j = 0; j< points; j++){
             double x = XMIN + i * stepx;

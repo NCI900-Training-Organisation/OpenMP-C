@@ -17,15 +17,13 @@ Usage:  ./fdd_laplace-omp size tolerance method
 
 Produced for NCI Training. 
 
-Frederick Fung 2022
-4527FD1D
+Frederick Fung 2022, 2025
 ====================================================================*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-/* Some libcs don't define M_PI under -std=c11 unless extensions are enabled */
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -39,7 +37,7 @@ static inline double rhs_fc(int i, int j, double h) {
     return (2.0 * M_PI * M_PI) * sin(M_PI * x) * sin(M_PI * y);
 }
 
-/* L2 norm of residual r = A u - f on interior (optionally normalized) */
+/* L2 norm of residual r = A u - f on interior */
 static double l2_residual(int n, double h,
                           double (*restrict u)[n],
                           const double (*restrict f)[n],
@@ -61,7 +59,7 @@ static double l2_residual(int n, double h,
     return res;
 }
 
-/* Jacobi: updates grid in-place (copies back if final buffer is the temp) */
+/* Jacobi: updates grid in-place */
 static int Jacobi(double tol, int max_iter, int n,
                   double (*restrict grid)[n],
                   const double (*restrict rhs)[n],
@@ -78,8 +76,6 @@ static int Jacobi(double tol, int max_iter, int n,
 
     while (res > tol && iter < max_iter) {
         ++iter;
-
-        #pragma omp parallel for collapse(2) schedule(static) default(none) shared(next,grid,rhs) firstprivate(n,h2_4)
         for (int i = 1; i < n - 1; ++i) {
             for (int j = 1; j < n - 1; ++j) {
                 next[i][j] = h2_4 * rhs[i][j]
@@ -94,7 +90,6 @@ static int Jacobi(double tol, int max_iter, int n,
         }
 
     }
-    /* Always copy back to the caller's original buffer (pointed to by 'next' now if odd swaps) */
     memcpy(next, grid, (size_t)n * (size_t)n * sizeof **grid);
     free(next);
     return iter;
@@ -113,7 +108,6 @@ static int GaussSeidel(double tol, int max_iter, int n,
     while (res > tol && iter < max_iter) {
         ++iter;
     /* Red sweep: (i+j) % 2 == 0 */
-    #pragma omp parallel for collapse(2) schedule(static) default(none) shared(grid,rhs) firstprivate(n,h2_4)
     for (int i = 1; i < n - 1; ++i){
         for (int j = 1; j < n - 1; ++j)
             if (((i + j) & 1) == 0)
@@ -121,7 +115,6 @@ static int GaussSeidel(double tol, int max_iter, int n,
                         + 0.25 * (grid[i-1][j] + grid[i+1][j] + grid[i][j-1] + grid[i][j+1]);
     }
     /* Black sweep: (i+j) % 2 == 1 */
-    #pragma omp parallel for collapse(2) schedule(static) default(none) shared(grid,rhs) firstprivate(n,h2_4)
     for (int i = 1; i < n - 1; ++i){
         for (int j = 1; j < n - 1; ++j)
             if (((i + j) & 1) == 1)
@@ -171,6 +164,7 @@ int main(int argc, char *argv[]){
         double (*rhs )[size] = malloc(sizeof *rhs  * size);
         if (!grid || !rhs) { perror("malloc"); free(grid); free(rhs); fclose(fp); return 1; }
 
+        /* set up the boundary condition and rhs*/
         for (int i = 0; i < size; i++){
             for (int j = 0; j < size; j++){
                 if (i == 0 || j == 0 || i == size-1 || j == size-1){

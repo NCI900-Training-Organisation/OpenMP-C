@@ -1,24 +1,25 @@
 /* =================================================================
-mandelbrot-split.c
+mandelbrot-omp.c
 
-Written by Frederick Fung for NCI OpenMP Workshop March 2022
+Written by Frederick Fung for NCI OpenMP Workshop March 2022, updated
+by Frederick Fung in 2025
 
 This program computes Mandelbrot set within a pre-defined region. 
-For plotting, the output routine is separated from the calculation.
+For plotting, the output is filled as the iteration goes.
 
 Output: an 2D array. Each element corresponds to a pixel to be drawn.  
 
 The code is accelerated by openmp multi-threading. 
 
-Compile: gcc -fopenmp -g -Wall -O3 -o mandelbrot-split mandelbrot-split.c 
+Compile: gcc -fopenmp -g -Wall -O3 -o mandelbrot-omp mandelbrot-omp.c 
 
-Usage: ./mandelbrot-split
+Usage: ./mandelbrot-omp
 
 .....................................................................
+
 Produced for NCI Training. 
 
-Frederick Fung 2022
-4527FD1D
+Frederick Fung 2022, 2025
 ====================================================================*/
 
 
@@ -30,10 +31,10 @@ Frederick Fung 2022
 #define MAXITER 100
 #define IO
 
+//#define OPENMP_TIMER
 
 static const double XMIN = -2.0, XMAX = 0.47;
 static const double YMIN = -1.12, YMAX = 1.12;
-
 
 typedef struct { double re, im; } Complex;
 
@@ -58,63 +59,72 @@ static int mandelbrot_escape(Complex c) {
 static void gen_mandelbrot(int points){
       
   if (points <= 0) {
-    fprintf(stderr, "points must be positive\n");
-    return;
-}
-
-
-/* Include both endpoints by using N samples over a closed interval */
-const double stepx = (points > 1) ? (XMAX - XMIN) / (points - 1) : 0.0;
-const double stepy = (points > 1) ? (YMAX - YMIN) / (points - 1) : 0.0;
-
- 
-  /* allocate mem for the image */   
-  int *img[points];
-  for (int n =0 ; n< points; ++n){
-      img[n] =  (int *) malloc(points *sizeof(int));
+      fprintf(stderr, "points must be positive\n");
+      return;
   }
-  
-  int i, j;
-  #ifdef OPENMP_TIMER
-  double start = omp_get_wtime();
-  #endif
 
-  /* parallel constrcut */
-  #pragma omp parallel default(none) firstprivate(stepx, stepy) private(i,j) shared(img, points)
-  { 
-     // worksharing loop
-     #pragma omp for schedule(dynamic) 
-      for (i = 0; i< points; i++){
-         for (j = 0; j< points; j++){
-          double x = XMIN + i * stepx;
-          double y = YMIN + j * stepy;
-         Complex c_num = { x, y };
-         int iter;
-         iter = mandelbrot_escape(c_num);
-         img[i][j]= iter;
-        }
+  char path[128];
+
+  snprintf(path, sizeof(path), "mandelbrot_set_%d.csv", points);
+  FILE *fp = fopen(path, "w");
+  if (!fp) {
+      perror("fopen");
+      return;
+  }
+
+  /* Include both endpoints by using N samples over a closed interval */
+  const double stepx = (points > 1) ? (XMAX - XMIN) / (points - 1) : 0.0;
+  const double stepy = (points > 1) ? (YMAX - YMIN) / (points - 1) : 0.0;
+
+    
+    int i, j;
+    #ifdef OPENMP_TIMER
+    double start = omp_get_wtime();
+    #endif
+
+    /* parallel constrcut */
+    #pragma omp FIXME
+    { 
+       // worksharing loop
+       #pragma omp FIXME
+        for (i = 0; i< points; i++){
+           for (j = 0; j< points; j++){
+            double x = XMIN + i * stepx;
+            double y = YMIN + j * stepy;
+            Complex c_num = { x, y };
+            int iter;
+            iter = mandelbrot_escape(c_num);
+           #pragma omp ordered
+           fprintf(fp, "%d,", iter);
+          }
+           #pragma omp ordered 
+           fprintf(fp, "\n");
+      }
     }
-  }
 
-  #ifdef OPENMP_TIMER
-  double end = omp_get_wtime();
-  printf("openmp walltime %f seconds\n ", end - start);
-  #endif
+    #ifdef OPENMP_TIMER
+    double end = omp_get_wtime();
+    printf("openmp walltime %f seconds\n ", end - start);
+    #endif
 
 
-   #ifdef IO
-   char path[128];
-   snprintf(path, sizeof path, "mandelbrot_set_%d.csv", points);
-   FILE *fp = fopen(path, "w");
-   if (!fp) { perror("fopen");  return; }
+    /* allocate mem for the image */   
+    int *img[points];
+    for (int n =0 ; n< points; ++n){
+      img[n] =  (int *) malloc(points *sizeof(int));
+    }
 
-   for (int i = 0; i < points; ++i) {
-       for (int j = 0; j < points; ++j) {
-        fprintf(fp, (j + 1 < points) ? "%d," : "%d\n", img[i][j]);
-       }
-   }
-   fclose(fp);
-   #endif
+
+    #ifdef IO
+    char path[128];
+    snprintf(path, sizeof path, "mandelbrot_set_%d.csv", points);
+    FILE *fp = fopen(path, "w");
+    if (!fp) { perror("fopen");  return; }
+ 
+    /* FIXIME: Write the data to img */
+
+    fclose(fp);
+    #endif
 
 
     /* free space */
@@ -125,6 +135,7 @@ const double stepy = (points > 1) ? (YMAX - YMIN) / (points - 1) : 0.0;
 
 
 int main(){
+   
    
     int npoints_array[]= {100,1000,10000};
 
@@ -137,6 +148,8 @@ int main(){
        gen_mandelbrot(point);
 
     }
+
+    return 0;
    
 }
 
